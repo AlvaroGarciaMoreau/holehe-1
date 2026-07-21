@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Holehe OSINT Web Dashboard - Efficiently check registered accounts across 120+ platforms by email address with a beautiful, real-time interface.">
+    <title>Holehe OSINT - Email Registered Accounts Finder</title>
+    
+    <!-- Modern Premium Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Sidebar: History & Saved Scans -->
+        <aside class="sidebar" aria-label="Scan History">
+            <div class="sidebar-header">
+                <i data-lucide="history" class="icon-accent"></i>
+                <h2>Scan History</h2>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="empty-history" id="emptyHistory">
+                    <p>No recent scans yet.</p>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <button type="button" id="clearHistoryBtn" class="btn btn-secondary btn-sm">
+                    <i data-lucide="trash-2"></i> Clear History
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard Workspace -->
+        <main class="main-content">
+            <!-- Header Section -->
+            <header class="app-header">
+                <div class="logo-area">
+                    <div class="logo-glow"></div>
+                    <i data-lucide="shield-alert" class="logo-icon"></i>
+                    <div class="logo-text">
+                        <h1>Holehe <span>OSINT</span></h1>
+                        <p class="subtitle">Email Registered Accounts Finder</p>
+                    </div>
+                </div>
+                <div class="status-indicator">
+                    <span class="status-dot online"></span>
+                    <span id="connectionStatus">Connected to Backend</span>
+                </div>
+            </header>
+
+            <!-- Control Panel (Input & Configs) -->
+            <section class="control-panel-card" aria-labelledby="scan-title">
+                <h2 id="scan-title" class="sr-only">Start a Scan</h2>
+                <form id="scanForm" class="scan-form" onsubmit="event.preventDefault();">
+                    <div class="input-group">
+                        <i data-lucide="mail" class="input-icon"></i>
+                        <input type="email" id="emailInput" placeholder="Enter target email address (e.g., target@example.com)..." required autocomplete="email">
+                        <button type="submit" id="startScanBtn" class="btn btn-primary">
+                            <span class="btn-text">Start OSINT Scan</span>
+                            <i data-lucide="search" class="btn-icon"></i>
+                        </button>
+                    </div>
+
+                    <div class="scan-options">
+                        <div class="option-item">
+                            <label class="switch-container">
+                                <input type="checkbox" id="noPasswordRecovery">
+                                <span class="switch-slider"></span>
+                            </label>
+                            <div class="option-details">
+                                <span class="option-title">No Password Recovery</span>
+                                <span class="option-desc">Do not trigger password recovery checks (faster and stealthier)</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Active Scan Progress Area (Hidden by default) -->
+            <section id="progressSection" class="progress-section hidden" aria-label="Scan Progress">
+                <div class="progress-header">
+                    <div class="progress-title-wrapper">
+                        <i data-lucide="loader" class="spinner"></i>
+                        <h3>Scanning Email...</h3>
+                        <span id="currentScanningTarget" class="scanning-target">Ready</span>
+                    </div>
+                    <div class="progress-percentage" id="progressPercentage">0%</div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progressBarFill" style="width: 0%"></div>
+                </div>
+                <div class="progress-details-bar">
+                    <span id="progressCount">0 / 0 sites scanned</span>
+                    <button type="button" id="cancelScanBtn" class="btn btn-danger btn-xs">
+                        <i data-lucide="square"></i> Stop Scan
+                    </button>
+                </div>
+            </section>
+
+            <!-- Metrics Statistics Row -->
+            <section class="metrics-grid" aria-label="Scan Metrics">
+                <div class="metric-card found" id="metricFoundCard">
+                    <div class="metric-icon-wrapper">
+                        <i data-lucide="check-circle-2"></i>
+                    </div>
+                    <div class="metric-data">
+                        <div class="metric-value" id="metricFound">0</div>
+                        <div class="metric-label">Registered Accounts</div>
+                    </div>
+                </div>
+
+                <div class="metric-card checked" id="metricCheckedCard">
+                    <div class="metric-icon-wrapper">
+                        <i data-lucide="activity"></i>
+                    </div>
+                    <div class="metric-data">
+                        <div class="metric-value" id="metricChecked">0 / 0</div>
+                        <div class="metric-label">Platforms Checked</div>
+                    </div>
+                </div>
+
+                <div class="metric-card errors" id="metricErrorsCard">
+                    <div class="metric-icon-wrapper">
+                        <i data-lucide="alert-triangle"></i>
+                    </div>
+                    <div class="metric-data">
+                        <div class="metric-value" id="metricErrors">0</div>
+                        <div class="metric-label">Errors / Limits</div>
+                    </div>
+                </div>
+
+                <div class="metric-card duration" id="metricDurationCard">
+                    <div class="metric-icon-wrapper">
+                        <i data-lucide="clock"></i>
+                    </div>
+                    <div class="metric-data">
+                        <div class="metric-value" id="metricDuration">0s</div>
+                        <div class="metric-label">Scan Duration</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-container" aria-label="Scan Results">
+                <!-- Results Toolbar -->
+                <div class="results-toolbar">
+                    <div class="filter-tabs" role="tablist">
+                        <button type="button" id="tabAll" class="tab-btn active" role="tab" aria-selected="true" aria-controls="resultsGrid">
+                            All Checked <span class="badge" id="badgeAll">0</span>
+                        </button>
+                        <button type="button" id="tabFound" class="tab-btn" role="tab" aria-selected="false" aria-controls="resultsGrid">
+                            Found <span class="badge badge-success" id="badgeFound">0</span>
+                        </button>
+                        <button type="button" id="tabNotFound" class="tab-btn" role="tab" aria-selected="false" aria-controls="resultsGrid">
+                            Not Found <span class="badge badge-secondary" id="badgeNotFound">0</span>
+                        </button>
+                        <button type="button" id="tabErrors" class="tab-btn" role="tab" aria-selected="false" aria-controls="resultsGrid">
+                            Errors <span class="badge badge-danger" id="badgeErrors">0</span>
+                        </button>
+                    </div>
+
+                    <div class="toolbar-actions">
+                        <div class="search-box">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="search" id="searchInput" placeholder="Search platforms...">
+                        </div>
+
+                        <div class="select-category-wrapper">
+                            <select id="categoryFilter" aria-label="Filter by category">
+                                <option value="all">All Categories</option>
+                                <!-- Categories dynamically loaded -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-actions-row">
+                    <span class="results-info-text" id="resultsInfoText">Please start a scan or select a previous scan from history to display results.</span>
+                    <div class="export-actions hidden" id="exportActions">
+                        <button type="button" id="exportCsvBtn" class="btn btn-secondary btn-sm">
+                            <i data-lucide="file-spreadsheet"></i> Export CSV
+                        </button>
+                        <button type="button" id="exportJsonBtn" class="btn btn-secondary btn-sm">
+                            <i data-lucide="braces"></i> Export JSON
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Grid -->
+                <div class="results-grid" id="resultsGrid" role="tabpanel">
+                    <!-- Cards dynamically inserted -->
+                    <div class="placeholder-state" id="placeholderState">
+                        <div class="placeholder-icon-glow">
+                            <i data-lucide="fingerprint" class="placeholder-icon"></i>
+                        </div>
+                        <h3>No Active Results</h3>
+                        <p>Enter an email address above and click "Start OSINT Scan" to check register accounts on 120+ web services.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Javascript Assets -->
+    <script src="/static/app.js"></script>
+    <script>
+        // Initialize lucide icons on load
+        lucide.createIcons();
+    </script>
+</body>
+</html>
