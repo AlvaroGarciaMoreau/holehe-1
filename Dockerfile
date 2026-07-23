@@ -1,5 +1,14 @@
-FROM python:3.9-slim-bullseye
-COPY . /opt/holehe
-WORKDIR /opt/holehe
-RUN pip install requests
+FROM python:3.12-slim
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    HOLEHE_OUTPUT_DIR=/data
+
+COPY . /app
+
+RUN pip install --no-cache-dir beautifulsoup4 termcolor httpx trio fastapi uvicorn anyio
 RUN pip install .
+
+CMD ["python", "-m", "holehe", "--dashboard"]

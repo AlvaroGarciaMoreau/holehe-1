@@ -1,0 +1,15 @@
+services:
+  holehe:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: holehe-app
+    ports:
+      - "8080:8080"
+    environment:
+      - HOLEHE_OUTPUT_DIR=/data
+      - HOLEHE_HOST=0.0.0.0
+      - HOLEHE_PORT=8080
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

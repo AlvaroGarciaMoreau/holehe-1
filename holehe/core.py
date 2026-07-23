@@ -30,6 +30,7 @@ except Exception:
 
 DEBUG        = False
 EMAIL_FORMAT = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+OUTPUT_DIR = os.environ.get("HOLEHE_OUTPUT_DIR", ".")
 
 __version__ = "1.61"
 
@@ -196,11 +197,14 @@ def export_csv(data,args,email):
         now = datetime.now()
         timestamp = datetime.timestamp(now)
         name_file="holehe_"+str(round(timestamp))+"_"+email+"_results.csv"
-        with open(name_file, 'w', encoding='utf8', newline='') as output_file:
+        output_dir = OUTPUT_DIR
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, name_file)
+        with open(output_path, 'w', encoding='utf8', newline='') as output_file:
             fc = csv.DictWriter(output_file,fieldnames=data[0].keys())
             fc.writeheader()
             fc.writerows(data)
-        exit("All results have been exported to "+name_file)
+        exit("All results have been exported to "+output_path)
 
 async def launch_module(module,email, client, out):
     try:
@@ -286,8 +290,8 @@ def main():
     if "--dashboard" in sys.argv:
         from argparse import ArgumentParser
         parser = ArgumentParser(add_help=False)
-        parser.add_argument("-H", "--host", default="127.0.0.1")
-        parser.add_argument("-P", "--port", type=int, default=8080)
+        parser.add_argument("-H", "--host", default=os.environ.get("HOLEHE_HOST", "127.0.0.1"))
+        parser.add_argument("-P", "--port", type=int, default=int(os.environ.get("HOLEHE_PORT", "8080")))
         args, _ = parser.parse_known_args()
         
         from holehe.server import start_server
