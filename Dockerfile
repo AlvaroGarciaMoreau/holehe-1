@@ -8,7 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 COPY . /app
 
-RUN pip install --no-cache-dir beautifulsoup4 termcolor httpx trio fastapi uvicorn anyio
+RUN pip install --no-cache-dir beautifulsoup4 termcolor httpx trio fastapi uvicorn anyio requests
 RUN pip install .
 
 CMD ["python", "-m", "holehe", "--dashboard"]
